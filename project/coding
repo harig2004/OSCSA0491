@@ -1,0 +1,60 @@
+import psutil
+import time
+import matplotlib.pyplot as plt
+import pandas as pd
+
+def monitor_system_resources(interval=1, duration=300):
+    cpu_percentages = []
+    memory_percentages = []
+    disk_usages = []
+    network_sent = []
+    network_received = []
+    timestamps = []
+
+    end_time = time.time() + duration
+    while time.time() < end_time:
+        # CPU usage
+        cpu_percent = psutil.cpu_percent(interval=interval)
+        cpu_percentages.append(cpu_percent)
+
+        # Memory usage
+        mem = psutil.virtual_memory()
+        memory_percentages.append(mem.percent)
+
+        # Disk usage
+        disk_usage = psutil.disk_usage('/')
+        disk_usages.append(disk_usage.percent)
+
+        # Network bandwidth
+        net_io = psutil.net_io_counters()
+        network_sent.append(net_io.bytes_sent)
+        network_received.append(net_io.bytes_recv)
+
+        # Timestamp
+        timestamps.append(pd.Timestamp.now())
+
+        time.sleep(interval)
+
+        # Plotting in real-time
+        plt.clf()
+        plt.plot(timestamps, cpu_percentages, label='CPU Usage')
+        plt.plot(timestamps, memory_percentages, label='Memory Usage')
+        plt.plot(timestamps, disk_usages, label='Disk Usage')
+        plt.xlabel('Time')
+        plt.ylabel('Percentage')
+        plt.title('System Resource Utilization Over Time')
+        plt.legend()
+        plt.grid(True)
+        plt.pause(0.01)  # To allow the plot to update
+
+    # Final plot
+    plt.show()
+
+    # Store data in a CSV file (optional)
+    data = {'Timestamp': timestamps, 'CPU Usage': cpu_percentages, 'Memory Usage': memory_percentages, 'Disk Usage': disk_usages,
+            'Network Sent': network_sent, 'Network Received': network_received}
+    df = pd.DataFrame(data)
+    df.to_csv('system_resources_log.csv', index=False)
+
+if _name_ == "_main_":
+    monitor_system_resources()
